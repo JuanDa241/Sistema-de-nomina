@@ -1,0 +1,652 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema de Nómina Colombia</title>
+  <style>
+    :root{
+      --bg:#0f172a;--panel:#111827;--card:#ffffff;--text:#111827;--muted:#6b7280;
+      --line:#e5e7eb;--primary:#2563eb;--primary-2:#1d4ed8;--danger:#dc2626;
+      --ok:#16a34a;--warn:#d97706;--soft:#f8fafc;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:#f3f4f6;color:var(--text);
+    }
+    .topbar{
+      background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;padding:24px 20px;
+      box-shadow:0 10px 25px rgba(0,0,0,.15);
+    }
+    .topbar h1{margin:0 0 6px;font-size:28px}
+    .topbar p{margin:0;color:#cbd5e1}
+    .container{max-width:1500px;margin:0 auto;padding:18px}
+    .grid{display:grid;grid-template-columns:420px 1fr;gap:18px;align-items:start}
+    .card{
+      background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;
+      box-shadow:0 10px 24px rgba(2,6,23,.06);
+    }
+    .card h2,.card h3{margin:0 0 14px}
+    .subtle{color:var(--muted);font-size:13px}
+    .section{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form-grid .full{grid-column:1/-1}
+    label{display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px}
+    input,select{
+      width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:12px;
+      font-size:14px;background:#fff;
+    }
+    input:focus,select:focus{outline:none;border-color:#60a5fa;box-shadow:0 0 0 4px rgba(37,99,235,.08)}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+    button{
+      border:0;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer;font-size:14px;
+      transition:.2s transform,.2s opacity,.2s background;
+    }
+    button:hover{transform:translateY(-1px)}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-2)}
+    .btn-secondary{background:#e5e7eb;color:#111827}
+    .btn-danger{background:var(--danger);color:#fff}
+    .btn-ok{background:var(--ok);color:#fff}
+    .btn-warn{background:var(--warn);color:#fff}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+    .kpi{
+      background:linear-gradient(180deg,#fff,#f8fafc);padding:14px;border-radius:16px;border:1px solid var(--line);
+    }
+    .kpi .label{font-size:12px;color:#6b7280;margin-bottom:4px}
+    .kpi .value{font-size:20px;font-weight:800}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px}
+    table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+    thead th{
+      position:sticky;top:0;background:#eef2ff;color:#1e3a8a;z-index:1;font-size:12px;
+      text-align:left;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap;
+    }
+    tbody td{
+      padding:10px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap;
+    }
+    tbody tr:hover{background:#f9fafb}
+    .text-right{text-align:right}
+    .pill{
+      display:inline-block;padding:5px 10px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:12px;font-weight:700
+    }
+    .small{font-size:12px;color:#6b7280}
+    .row-actions button{padding:7px 9px;font-size:12px;border-radius:10px}
+    .footer-note{font-size:12px;color:#6b7280;margin-top:12px;line-height:1.45}
+    .highlight{
+      background:#f8fafc;border:1px dashed #cbd5e1;border-radius:12px;padding:12px;font-size:13px;line-height:1.5
+    }
+    @media (max-width: 1200px){
+      .grid{grid-template-columns:1fr}
+      .kpis{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width: 700px){
+      .form-grid{grid-template-columns:1fr}
+      .kpis{grid-template-columns:1fr}
+      .topbar h1{font-size:22px}
+    }
+    .inline-switches{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .check{
+      display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fafafa
+    }
+    .check input{width:auto}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>Sistema de Nómina Colombia</h1>
+    <p>Registro de empleados, liquidación automática, costos legales del empleador y exportación a Excel/PDF.</p>
+  </div>
+
+  <div class="container">
+    <div class="grid">
+      <div class="card">
+        <h2>Configuración legal</h2>
+        <div class="subtle">Valores iniciales pensados para Colombia en 2026. Puedes ajustarlos si tu caso exige otra parametrización.</div>
+
+        <div class="section">
+          <div class="form-grid">
+            <div>
+              <label>SMMLV</label>
+              <input id="cfgSmmlv" type="number" step="0.01" value="1750905">
+            </div>
+            <div>
+              <label>Auxilio de transporte</label>
+              <input id="cfgAuxTrans" type="number" step="0.01" value="249095">
+            </div>
+            <div>
+              <label>Horas mensuales base</label>
+              <input id="cfgHorasMes" type="number" step="1" value="220">
+            </div>
+            <div>
+              <label>Riesgo ARL %</label>
+              <input id="cfgArl" type="number" step="0.001" value="0.522">
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Recargos y extras</h3>
+          <div class="form-grid">
+            <div><label>Hora extra diurna %</label><input id="cfgHexDiurna" type="number" step="0.01" value="25"></div>
+            <div><label>Hora extra nocturna %</label><input id="cfgHexNocturna" type="number" step="0.01" value="75"></div>
+            <div><label>Recargo nocturno %</label><input id="cfgRecNocturno" type="number" step="0.01" value="35"></div>
+            <div><label>Dominical/festivo %</label><input id="cfgDominical" type="number" step="0.01" value="80"></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Aportes y prestaciones</h3>
+          <div class="form-grid">
+            <div><label>Salud trabajador %</label><input id="cfgSaludTrab" type="number" step="0.01" value="4"></div>
+            <div><label>Pensión trabajador %</label><input id="cfgPensionTrab" type="number" step="0.01" value="4"></div>
+            <div><label>Salud empleador %</label><input id="cfgSaludEmp" type="number" step="0.01" value="8.5"></div>
+            <div><label>Pensión empleador %</label><input id="cfgPensionEmp" type="number" step="0.01" value="12"></div>
+            <div><label>Caja compensación %</label><input id="cfgCaja" type="number" step="0.01" value="4"></div>
+            <div><label>SENA %</label><input id="cfgSena" type="number" step="0.01" value="2"></div>
+            <div><label>ICBF %</label><input id="cfgIcbf" type="number" step="0.01" value="3"></div>
+            <div><label>Cesantías %</label><input id="cfgCesantias" type="number" step="0.01" value="8.33"></div>
+            <div><label>Intereses cesantías %</label><input id="cfgIntCes" type="number" step="0.01" value="1"></div>
+            <div><label>Prima %</label><input id="cfgPrima" type="number" step="0.01" value="8.33"></div>
+            <div><label>Vacaciones %</label><input id="cfgVacaciones" type="number" step="0.01" value="4.17"></div>
+            <div><label>Fondo solidaridad %</label><input id="cfgFsp" type="number" step="0.01" value="1"></div>
+          </div>
+          <div class="inline-switches" style="margin-top:12px">
+            <label class="check"><input id="cfgExoneracion" type="checkbox"> Aplicar exoneración art. 114-1 ET</label>
+            <label class="check"><input id="cfgUsarFsp" type="checkbox" checked> Aplicar FSP desde 4 SMMLV</label>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Agregar empleado</h2>
+          <div class="form-grid">
+            <div class="full"><label>Nombre</label><input id="nombre" type="text" placeholder="Ej. Juan Pérez"></div>
+            <div><label>Documento</label><input id="documento" type="text" placeholder="Ej. 123456789"></div>
+            <div><label>Cargo</label><input id="cargo" type="text" placeholder="Ej. Auxiliar"></div>
+            <div><label>Salario base mensual</label><input id="salarioBase" type="number" step="0.01" value="1750905"></div>
+            <div><label>Días trabajados</label><input id="diasTrabajados" type="number" step="0.01" value="30"></div>
+            <div><label>Días no trabajados</label><input id="diasNoTrabajados" type="number" step="0.01" value="0"></div>
+            <div><label>Horas no trabajadas</label><input id="horasNoTrabajadas" type="number" step="0.01" value="0"></div>
+            <div><label>Auxilio extra / bono salarial</label><input id="bonoSalarial" type="number" step="0.01" value="0"></div>
+            <div><label>Auxilio no salarial</label><input id="auxNoSalarial" type="number" step="0.01" value="0"></div>
+            <div><label>Hora extra diurna</label><input id="heDiurna" type="number" step="0.01" value="0"></div>
+            <div><label>Hora extra nocturna</label><input id="heNocturna" type="number" step="0.01" value="0"></div>
+            <div><label>Recargo nocturno</label><input id="recNocturno" type="number" step="0.01" value="0"></div>
+            <div><label>Horas dominical/festivo</label><input id="horasDominical" type="number" step="0.01" value="0"></div>
+            <div><label>Otros descuentos</label><input id="otrosDescuentos" type="number" step="0.01" value="0"></div>
+            <div><label>Riesgo ARL del empleado %</label><input id="arlEmpleado" type="number" step="0.001" value="0.522"></div>
+          </div>
+
+          <div class="actions">
+            <button class="btn-primary" id="btnAgregar">Agregar empleado</button>
+            <button class="btn-secondary" id="btnLimpiar">Limpiar formulario</button>
+            <button class="btn-danger" id="btnVaciar">Vaciar tabla</button>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          Este sistema liquida salario devengado proporcional, auxilio de transporte proporcional, horas extra, recargos, salud, pensión, FSP opcional, prestaciones y costos patronales. No sustituye revisión contable o jurídica en casos especiales.
+        </div>
+      </div>
+
+      <div>
+        <div class="kpis">
+          <div class="kpi"><div class="label">Empleados</div><div class="value" id="kpiEmpleados">0</div></div>
+          <div class="kpi"><div class="label">Total neto a pagar</div><div class="value" id="kpiNeto">$0</div></div>
+          <div class="kpi"><div class="label">Costo empresa</div><div class="value" id="kpiCosto">$0</div></div>
+          <div class="kpi"><div class="label">Deducciones</div><div class="value" id="kpiDeducciones">$0</div></div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px">
+            <div>
+              <h2>Tabla de nómina</h2>
+              <div class="small">Los cálculos quedan acumulados automáticamente.</div>
+            </div>
+            <div class="actions" style="margin-top:0">
+              <button class="btn-ok" id="btnExcel">Exportar Excel</button>
+              <button class="btn-warn" id="btnPdf">Exportar PDF</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table id="tablaNomina">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Empleado</th>
+                  <th>Documento</th>
+                  <th>Cargo</th>
+                  <th class="text-right">Base</th>
+                  <th class="text-right">Devengado</th>
+                  <th class="text-right">Aux. transporte</th>
+                  <th class="text-right">Extras y recargos</th>
+                  <th class="text-right">Total devengado</th>
+                  <th class="text-right">Deducciones</th>
+                  <th class="text-right">Neto</th>
+                  <th class="text-right">Costo empresa</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyNomina"></tbody>
+            </table>
+          </div>
+
+          <div class="section">
+            <h3>Resumen ejecutivo</h3>
+            <div class="highlight" id="resumen">
+              Sin registros todavía.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const money = v => new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(v||0));
+const round2 = n => Math.round((Number(n)+Number.EPSILON)*100)/100;
+let empleados = [];
+let editIndex = null;
+
+function getCfg(){
+  return {
+    smmlv: val('cfgSmmlv'),
+    auxTrans: val('cfgAuxTrans'),
+    horasMes: val('cfgHorasMes'),
+    arl: val('cfgArl'),
+    heDiurna: val('cfgHexDiurna')/100,
+    heNocturna: val('cfgHexNocturna')/100,
+    recNocturno: val('cfgRecNocturno')/100,
+    dominical: val('cfgDominical')/100,
+    saludTrab: val('cfgSaludTrab')/100,
+    pensionTrab: val('cfgPensionTrab')/100,
+    saludEmp: val('cfgSaludEmp')/100,
+    pensionEmp: val('cfgPensionEmp')/100,
+    caja: val('cfgCaja')/100,
+    sena: val('cfgSena')/100,
+    icbf: val('cfgIcbf')/100,
+    cesantias: val('cfgCesantias')/100,
+    intCes: val('cfgIntCes')/100,
+    prima: val('cfgPrima')/100,
+    vacaciones: val('cfgVacaciones')/100,
+    fsp: val('cfgFsp')/100,
+    exoneracion: document.getElementById('cfgExoneracion').checked,
+    usarFsp: document.getElementById('cfgUsarFsp').checked
+  };
+}
+
+function val(id){
+  const el = document.getElementById(id);
+  return Number(el.value || 0);
+}
+
+function text(id){
+  return document.getElementById(id).value.trim();
+}
+
+function calcularEmpleado(data){
+  const cfg = getCfg();
+
+  const diasTrabajados = Math.max(0, data.diasTrabajados);
+  const salarioBase = Math.max(0, data.salarioBase);
+  const diasMes = 30;
+  const salarioProporcional = salarioBase * (diasTrabajados / diasMes);
+
+  const valorHora = salarioBase / cfg.horasMes;
+  const descuentoDias = (salarioBase / diasMes) * Math.max(0, data.diasNoTrabajados);
+  const descuentoHoras = valorHora * Math.max(0, data.horasNoTrabajadas);
+
+  const pagoHeDiurna = valorHora * (1 + cfg.heDiurna) * Math.max(0, data.heDiurna);
+  const pagoHeNocturna = valorHora * (1 + cfg.heNocturna) * Math.max(0, data.heNocturna);
+  const pagoRecNoct = valorHora * cfg.recNocturno * Math.max(0, data.recNocturno);
+  const pagoDominical = valorHora * (1 + cfg.dominical) * Math.max(0, data.horasDominical);
+
+  const extrasRecargos = pagoHeDiurna + pagoHeNocturna + pagoRecNoct + pagoDominical;
+
+  const aplicaAuxTrans = salarioBase <= (cfg.smmlv * 2);
+  const auxTransporte = aplicaAuxTrans ? cfg.auxTrans * (diasTrabajados / diasMes) : 0;
+
+  const baseDevengada = salarioProporcional - descuentoDias - descuentoHoras;
+  const devengadoSalarial = Math.max(0, baseDevengada) + extrasRecargos + Math.max(0, data.bonoSalarial);
+
+  const ibc = devengadoSalarial; // base simplificada para dependiente
+  const saludTrab = ibc * cfg.saludTrab;
+  const pensionTrab = ibc * cfg.pensionTrab;
+  const aplicaFsp = cfg.usarFsp && ibc >= (cfg.smmlv * 4);
+  const fsp = aplicaFsp ? (ibc * cfg.fsp) : 0;
+  const otrosDescuentos = Math.max(0, data.otrosDescuentos);
+  const totalDeducciones = saludTrab + pensionTrab + fsp + otrosDescuentos;
+
+  const totalDevengado = devengadoSalarial + auxTransporte + Math.max(0, data.auxNoSalarial);
+  const netoPagar = totalDevengado - totalDeducciones;
+
+  const saludEmp = (cfg.exoneracion && salarioBase < cfg.smmlv * 10) ? 0 : ibc * cfg.saludEmp;
+  const sena = (cfg.exoneracion && salarioBase < cfg.smmlv * 10) ? 0 : ibc * cfg.sena;
+  const icbf = (cfg.exoneracion && salarioBase < cfg.smmlv * 10) ? 0 : ibc * cfg.icbf;
+  const pensionEmp = ibc * cfg.pensionEmp;
+  const arl = ibc * (Math.max(0, data.arlEmpleado)/100);
+  const caja = ibc * cfg.caja;
+  const cesantias = (devengadoSalarial + auxTransporte) * cfg.cesantias;
+  const intCes = cesantias * (cfg.intCes / cfg.cesantias);
+  const prima = (devengadoSalarial + auxTransporte) * cfg.prima;
+  const vacaciones = devengadoSalarial * cfg.vacaciones;
+
+  const costoEmpresa = totalDevengado + saludEmp + pensionEmp + arl + caja + sena + icbf + cesantias + intCes + prima + vacaciones;
+
+  return {
+    ...data,
+    valorHora: round2(valorHora),
+    salarioProporcional: round2(salarioProporcional),
+    descuentoDias: round2(descuentoDias),
+    descuentoHoras: round2(descuentoHoras),
+    pagoHeDiurna: round2(pagoHeDiurna),
+    pagoHeNocturna: round2(pagoHeNocturna),
+    pagoRecNoct: round2(pagoRecNoct),
+    pagoDominical: round2(pagoDominical),
+    extrasRecargos: round2(extrasRecargos),
+    auxTransporte: round2(auxTransporte),
+    devengadoSalarial: round2(devengadoSalarial),
+    ibc: round2(ibc),
+    saludTrab: round2(saludTrab),
+    pensionTrab: round2(pensionTrab),
+    fsp: round2(fsp),
+    totalDeducciones: round2(totalDeducciones),
+    totalDevengado: round2(totalDevengado),
+    netoPagar: round2(netoPagar),
+    saludEmp: round2(saludEmp),
+    pensionEmp: round2(pensionEmp),
+    arl: round2(arl),
+    caja: round2(caja),
+    sena: round2(sena),
+    icbf: round2(icbf),
+    cesantias: round2(cesantias),
+    intCes: round2(intCes),
+    prima: round2(prima),
+    vacaciones: round2(vacaciones),
+    costoEmpresa: round2(costoEmpresa),
+  };
+}
+
+function obtenerFormulario(){
+  return {
+    nombre: text('nombre'),
+    documento: text('documento'),
+    cargo: text('cargo'),
+    salarioBase: val('salarioBase'),
+    diasTrabajados: val('diasTrabajados'),
+    diasNoTrabajados: val('diasNoTrabajados'),
+    horasNoTrabajadas: val('horasNoTrabajadas'),
+    bonoSalarial: val('bonoSalarial'),
+    auxNoSalarial: val('auxNoSalarial'),
+    heDiurna: val('heDiurna'),
+    heNocturna: val('heNocturna'),
+    recNocturno: val('recNocturno'),
+    horasDominical: val('horasDominical'),
+    otrosDescuentos: val('otrosDescuentos'),
+    arlEmpleado: val('arlEmpleado')
+  };
+}
+
+function validar(data){
+  if(!data.nombre) return 'Debes ingresar el nombre del empleado.';
+  if(data.salarioBase <= 0) return 'El salario base debe ser mayor a cero.';
+  if(data.diasTrabajados < 0 || data.diasTrabajados > 30) return 'Los días trabajados deben estar entre 0 y 30.';
+  if(data.diasNoTrabajados < 0 || data.horasNoTrabajadas < 0) return 'Los descuentos por tiempo no trabajado no pueden ser negativos.';
+  return '';
+}
+
+function render(){
+  const tbody = document.getElementById('tbodyNomina');
+  tbody.innerHTML = '';
+
+  empleados.forEach((e, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i+1}</td>
+      <td><strong>${escapeHtml(e.nombre)}</strong><div class="small">${money(e.netoPagar)}</div></td>
+      <td>${escapeHtml(e.documento || '-')}</td>
+      <td>${escapeHtml(e.cargo || '-')}</td>
+      <td class="text-right">${money(e.salarioBase)}</td>
+      <td class="text-right">${money(e.devengadoSalarial)}</td>
+      <td class="text-right">${money(e.auxTransporte + e.auxNoSalarial)}</td>
+      <td class="text-right">${money(e.extrasRecargos)}</td>
+      <td class="text-right"><strong>${money(e.totalDevengado)}</strong></td>
+      <td class="text-right">${money(e.totalDeducciones)}</td>
+      <td class="text-right"><strong>${money(e.netoPagar)}</strong></td>
+      <td class="text-right">${money(e.costoEmpresa)}</td>
+      <td class="row-actions">
+        <button class="btn-secondary" onclick="editar(${i})">Editar</button>
+        <button class="btn-danger" onclick="eliminar(${i})">Eliminar</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const totalNeto = empleados.reduce((a,b)=>a+b.netoPagar,0);
+  const totalCosto = empleados.reduce((a,b)=>a+b.costoEmpresa,0);
+  const totalDeduc = empleados.reduce((a,b)=>a+b.totalDeducciones,0);
+  const totalDev = empleados.reduce((a,b)=>a+b.totalDevengado,0);
+
+  document.getElementById('kpiEmpleados').textContent = empleados.length;
+  document.getElementById('kpiNeto').textContent = money(totalNeto);
+  document.getElementById('kpiCosto').textContent = money(totalCosto);
+  document.getElementById('kpiDeducciones').textContent = money(totalDeduc);
+
+  document.getElementById('resumen').innerHTML = empleados.length
+    ? `Planilla consolidada con <strong>${empleados.length}</strong> empleado(s). Total devengado: <strong>${money(totalDev)}</strong>. Total deducciones: <strong>${money(totalDeduc)}</strong>. Neto a pagar: <strong>${money(totalNeto)}</strong>. Costo total empresa: <strong>${money(totalCosto)}</strong>.`
+    : 'Sin registros todavía.';
+}
+
+function limpiarFormulario(){
+  ['nombre','documento','cargo'].forEach(id=>document.getElementById(id).value='');
+  ['diasNoTrabajados','horasNoTrabajadas','bonoSalarial','auxNoSalarial','heDiurna','heNocturna','recNocturno','horasDominical','otrosDescuentos'].forEach(id=>document.getElementById(id).value='0');
+  document.getElementById('diasTrabajados').value='30';
+  document.getElementById('salarioBase').value=document.getElementById('cfgSmmlv').value;
+  document.getElementById('arlEmpleado').value=document.getElementById('cfgArl').value;
+  editIndex = null;
+  document.getElementById('btnAgregar').textContent = 'Agregar empleado';
+}
+
+function cargarEnFormulario(e){
+  document.getElementById('nombre').value=e.nombre || '';
+  document.getElementById('documento').value=e.documento || '';
+  document.getElementById('cargo').value=e.cargo || '';
+  document.getElementById('salarioBase').value=e.salarioBase || 0;
+  document.getElementById('diasTrabajados').value=e.diasTrabajados || 0;
+  document.getElementById('diasNoTrabajados').value=e.diasNoTrabajados || 0;
+  document.getElementById('horasNoTrabajadas').value=e.horasNoTrabajadas || 0;
+  document.getElementById('bonoSalarial').value=e.bonoSalarial || 0;
+  document.getElementById('auxNoSalarial').value=e.auxNoSalarial || 0;
+  document.getElementById('heDiurna').value=e.heDiurna || 0;
+  document.getElementById('heNocturna').value=e.heNocturna || 0;
+  document.getElementById('recNocturno').value=e.recNocturno || 0;
+  document.getElementById('horasDominical').value=e.horasDominical || 0;
+  document.getElementById('otrosDescuentos').value=e.otrosDescuentos || 0;
+  document.getElementById('arlEmpleado').value=e.arlEmpleado || 0.522;
+}
+
+function editar(i){
+  editIndex = i;
+  cargarEnFormulario(empleados[i]);
+  document.getElementById('btnAgregar').textContent = 'Actualizar empleado';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function eliminar(i){
+  if(!confirm('¿Eliminar este empleado de la tabla?')) return;
+  empleados.splice(i,1);
+  render();
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+document.getElementById('btnAgregar').addEventListener('click', ()=>{
+  const data = obtenerFormulario();
+  const error = validar(data);
+  if(error){ alert(error); return; }
+
+  const calculado = calcularEmpleado(data);
+
+  if(editIndex === null){
+    empleados.push(calculado);
+  }else{
+    empleados[editIndex] = calculado;
+  }
+  render();
+  limpiarFormulario();
+});
+
+document.getElementById('btnLimpiar').addEventListener('click', limpiarFormulario);
+
+document.getElementById('btnVaciar').addEventListener('click', ()=>{
+  if(!empleados.length) return;
+  if(confirm('¿Vaciar toda la tabla de nómina?')){
+    empleados = [];
+    render();
+    limpiarFormulario();
+  }
+});
+
+function exportExcel(){
+  if(!empleados.length){ alert('No hay empleados para exportar.'); return; }
+
+  const rows = [
+    ['#','Empleado','Documento','Cargo','Salario base','Salario proporcional','Descuento días','Descuento horas','Extras y recargos','Auxilio transporte','Auxilio no salarial','Devengado salarial','IBC','Salud trabajador','Pensión trabajador','FSP','Otros descuentos','Total deducciones','Total devengado','Neto a pagar','Salud empleador','Pensión empleador','ARL','Caja','SENA','ICBF','Cesantías','Intereses cesantías','Prima','Vacaciones','Costo empresa']
+  ];
+
+  empleados.forEach((e,i)=>{
+    rows.push([
+      i+1,e.nombre,e.documento,e.cargo,e.salarioBase,e.salarioProporcional,e.descuentoDias,e.descuentoHoras,
+      e.extrasRecargos,e.auxTransporte,e.auxNoSalarial,e.devengadoSalarial,e.ibc,e.saludTrab,e.pensionTrab,
+      e.fsp,e.otrosDescuentos,e.totalDeducciones,e.totalDevengado,e.netoPagar,e.saludEmp,e.pensionEmp,e.arl,
+      e.caja,e.sena,e.icbf,e.cesantias,e.intCes,e.prima,e.vacaciones,e.costoEmpresa
+    ]);
+  });
+
+  const csv = rows.map(row => row.map(cell => {
+    const value = String(cell ?? '');
+    return /[",\n]/.test(value) ? `"${value.replace(/"/g,'""')}"` : value;
+  }).join(',')).join('\n');
+
+  const blob = new Blob(["\ufeff"+csv], {type: 'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'nomina_colombia.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function exportPdf(){
+  if(!empleados.length){ alert('No hay empleados para exportar.'); return; }
+
+  const totalNeto = empleados.reduce((a,b)=>a+b.netoPagar,0);
+  const totalCosto = empleados.reduce((a,b)=>a+b.costoEmpresa,0);
+  const totalDeduc = empleados.reduce((a,b)=>a+b.totalDeducciones,0);
+  const totalDev = empleados.reduce((a,b)=>a+b.totalDevengado,0);
+
+  const css = `
+    body{font-family:Arial,sans-serif;padding:24px;color:#111827}
+    h1{margin:0 0 6px}
+    p{margin:0 0 16px;color:#4b5563}
+    .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0 22px}
+    .box{border:1px solid #d1d5db;border-radius:10px;padding:10px}
+    .box b{display:block;font-size:18px;margin-top:4px}
+    table{width:100%;border-collapse:collapse;font-size:11px}
+    th,td{border:1px solid #d1d5db;padding:6px;text-align:left}
+    th{background:#eff6ff}
+    .right{text-align:right}
+  `;
+
+  const rows = empleados.map((e,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${escapeHtml(e.nombre)}</td>
+      <td>${escapeHtml(e.documento || '-')}</td>
+      <td>${escapeHtml(e.cargo || '-')}</td>
+      <td class="right">${money(e.totalDevengado)}</td>
+      <td class="right">${money(e.totalDeducciones)}</td>
+      <td class="right">${money(e.netoPagar)}</td>
+      <td class="right">${money(e.costoEmpresa)}</td>
+    </tr>
+  `).join('');
+
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Reporte Nómina</title>
+        <style>${css}</style>
+      </head>
+      <body>
+        <h1>Reporte de Nómina Colombia</h1>
+        <p>Generado desde el sistema de nómina. Usa "Guardar como PDF" en la ventana de impresión.</p>
+        <div class="summary">
+          <div class="box">Empleados<b>${empleados.length}</b></div>
+          <div class="box">Total devengado<b>${money(totalDev)}</b></div>
+          <div class="box">Total deducciones<b>${money(totalDeduc)}</b></div>
+          <div class="box">Costo empresa<b>${money(totalCosto)}</b></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Empleado</th>
+              <th>Documento</th>
+              <th>Cargo</th>
+              <th class="right">Total devengado</th>
+              <th class="right">Deducciones</th>
+              <th class="right">Neto</th>
+              <th class="right">Costo empresa</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+          <tfoot>
+            <tr>
+              <th colspan="4">Totales</th>
+              <th class="right">${money(totalDev)}</th>
+              <th class="right">${money(totalDeduc)}</th>
+              <th class="right">${money(totalNeto)}</th>
+              <th class="right">${money(totalCosto)}</th>
+            </tr>
+          </tfoot>
+        </table>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(()=>printWindow.print(), 400);
+}
+
+document.getElementById('btnExcel').addEventListener('click', exportExcel);
+document.getElementById('btnPdf').addEventListener('click', exportPdf);
+
+// recalculate when changing legal settings
+[
+ 'cfgSmmlv','cfgAuxTrans','cfgHorasMes','cfgArl','cfgHexDiurna','cfgHexNocturna','cfgRecNocturno','cfgDominical',
+ 'cfgSaludTrab','cfgPensionTrab','cfgSaludEmp','cfgPensionEmp','cfgCaja','cfgSena','cfgIcbf','cfgCesantias','cfgIntCes',
+ 'cfgPrima','cfgVacaciones','cfgFsp','cfgExoneracion','cfgUsarFsp'
+].forEach(id=>{
+  document.getElementById(id).addEventListener('change', ()=>{
+    if(!empleados.length) return;
+    empleados = empleados.map(e=>calcularEmpleado({
+      nombre:e.nombre, documento:e.documento, cargo:e.cargo, salarioBase:e.salarioBase, diasTrabajados:e.diasTrabajados,
+      diasNoTrabajados:e.diasNoTrabajados, horasNoTrabajadas:e.horasNoTrabajadas, bonoSalarial:e.bonoSalarial,
+      auxNoSalarial:e.auxNoSalarial, heDiurna:e.heDiurna, heNocturna:e.heNocturna, recNocturno:e.recNocturno,
+      horasDominical:e.horasDominical, otrosDescuentos:e.otrosDescuentos, arlEmpleado:e.arlEmpleado
+    }));
+    render();
+  });
+});
+
+limpiarFormulario();
+render();
+</script>
+</body>
+</html>
